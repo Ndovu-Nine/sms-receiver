@@ -11,28 +11,38 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 
 public class SmsReceiver extends BroadcastReceiver {
-    private static final String TAG = "SmsReceiver";
+  private static final String TAG = "SmsReceiver";
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        Bundle bundle = intent.getExtras();
-        if (bundle != null) {
-            Object[] pdus = (Object[]) bundle.get("pdus");
-            if (pdus != null) {
-                for (Object pdu : pdus) {
-                    SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
-                    String sender = smsMessage.getDisplayOriginatingAddress();
-                    String messageBody = smsMessage.getMessageBody();
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    Bundle bundle = intent.getExtras();
+    if (bundle != null) {
+      Object[] pdus = (Object[]) bundle.get("pdus");
+      if (pdus != null) {
+        for (Object pdu : pdus) {
+          SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
+          String sender = smsMessage.getDisplayOriginatingAddress();
+          String messageBody = smsMessage.getMessageBody();
 
-                    Log.d(TAG, "SMS received from: " + sender + "; Message: " + messageBody);
+          Log.d(TAG, "SMS received from: " + sender + "; Message: " + messageBody);
 
-                    // Send the message back to the Ionic app via Capacitor
-                    JSObject ret = new JSObject();
-                    ret.put("sender", sender);
-                    ret.put("message", messageBody);
-                    SmsReceiverPlugin.notifyListeners("onSmsReceived", ret, true);
-                }
-            }
+          // Send the message back to the Ionic app via Capacitor
+          JSObject ret = new JSObject();
+          ret.put("sender", sender);
+          ret.put("message", messageBody);
+          SmsReceiverPlugin plg= new SmsReceiverPlugin();
+          plg.notifyListeners("onSmsReceived", ret, true);
         }
+      }
     }
+  }
+
+  public boolean echo(String value) {
+    if(value.isBlank() || value.isEmpty()){
+      Log.d("CallBack from JS","EMPTY!");
+      return false;
+    }
+    Log.d("CallBack from JS",value);
+    return true;
+  }
 }
